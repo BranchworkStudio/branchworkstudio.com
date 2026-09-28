@@ -1,0 +1,31 @@
+---
+// The Branchwork mark: one trunk, three branches, one new bud in the accent.
+interface Props {
+  size?: number;
+  class?: string;
+}
+const { size = 28, class: className } = Astro.props;
+---
+
+<svg
+  class:list={['mark', className]}
+  width={size}
+  height={size}
+  viewBox="0 0 64 64"
+  aria-hidden="true"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="5.5"
+  stroke-linecap="round"
+>
+  <path d="M32 60 V10" />
+  <path d="M32 43 C32 31 15 32 15 17" />
+  <path d="M32 36 C32 27 49 30 49 20" />
+  <circle cx="32" cy="7" r="5.5" fill="var(--accent)" stroke="none" />
+</svg>
+
+<style>
+  .mark {
+    flex: none;
+  }
+</style>

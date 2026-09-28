@@ -1,0 +1,115 @@
+---
+import { Image } from 'astro:assets';
+import type { CollectionEntry } from 'astro:content';
+
+// The same frame renders on the home page and on the project page. Sharing a
+// view-transition-name lets the browser morph one into the other on navigation.
+interface Props {
+  project: CollectionEntry<'projects'>;
+  ratio?: string;
+  sizes: string;
+  priority?: boolean;
+}
+
+const { project, ratio = '4 / 3', sizes, priority = false } = Astro.props;
+const { cover, screens, cover_alt } = project.data;
+const loading = priority ? 'eager' : 'lazy';
+const fetchpriority = priority ? 'high' : undefined;
+---
+
+<div
+  class:list={['cover', { phones: screens.length > 0 }]}
+  style={`--ratio: ${ratio}; view-transition-name: cover-${project.id}`}
+>
+  {
+    screens.length > 0 ? (
+      <div class="phone-row" role="img" aria-label={cover_alt}>
+        {screens.map((s, i) => (
+          <Image
+            src={s}
+            alt=""
+            widths={[320, 480, 720]}
+            sizes="(min-width: 64rem) 16rem, 40vw"
+            loading={loading}
+            fetchpriority={i === 0 ? fetchpriority : undefined}
+            class="phone"
+            style={`--n: ${i}`}
+          />
+        ))}
+      </div>
+    ) : (
+      cover && (
+        <Image
+          src={cover}
+          alt={cover_alt}
+          widths={[480, 800, 1200, 1800, 2400]}
+          sizes={sizes}
+          loading={loading}
+          fetchpriority={fetchpriority}
+          class="photo"
+        />
+      )
+    )
+  }
+</div>
+
+<style>
+  .cover {
+    position: relative;
+    aspect-ratio: var(--ratio);
+    overflow: clip;
+    border-radius: var(--radius-media);
+    background: var(--surface);
+    view-transition-class: cover;
+  }
+
+  .photo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: scale 1.1s var(--ease-out);
+  }
+
+  /* Phone screens sit on a tinted field, slightly fanned. */
+  .phones {
+    background:
+      radial-gradient(120% 90% at 50% 110%, color-mix(in oklch, var(--accent) 22%, transparent), transparent 60%),
+      var(--surface);
+  }
+
+  .phone-row {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(0.75rem, 3%, 2rem);
+    padding-top: 9%;
+  }
+
+  .phone {
+    height: 112%;
+    width: auto;
+    border-radius: clamp(10px, 2.2vw, 30px);
+    box-shadow:
+      0 0 0 1px color-mix(in oklch, var(--ink) 10%, transparent),
+      0 24px 60px -20px color-mix(in oklch, oklch(20% 0.03 150) 55%, transparent);
+    translate: 0 calc(var(--n) * 7%);
+    transition: translate 1.1s var(--ease-out);
+  }
+
+  :global(a:hover) .photo {
+    scale: 1.035;
+  }
+
+  :global(a:hover) .phone {
+    translate: 0 calc(var(--n) * 7% - 2%);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .photo,
+    .phone {
+      transition: none;
+    }
+  }
+</style>

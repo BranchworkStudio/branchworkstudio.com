@@ -1,0 +1,133 @@
+---
+import '../styles/global.css';
+import Mark from '../components/Mark.astro';
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const siteName = 'Branchwork Studio';
+const {
+  title,
+  description = 'Branchwork Studio is where Pelle builds side projects: apps and tools for now, and whatever grows next.',
+} = Astro.props;
+const pageTitle = title ? `${title} | ${siteName}` : siteName;
+const canonical = new URL(Astro.url.pathname, Astro.site);
+const isHome = Astro.url.pathname === '/';
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>{pageTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={siteName} />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta name="theme-color" content="#f9faf9" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0c110e" media="(prefers-color-scheme: dark)" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="site-header">
+      <div class="wrap bar">
+        <a class="brand" href="/" aria-current={isHome ? 'page' : undefined}>
+          <Mark size={24} />
+          <span>Branchwork Studio</span>
+        </a>
+        <nav aria-label="Main">
+          <ul>
+            <li><a href="/#work">Work</a></li>
+            <li><a href="/#about">About</a></li>
+          </ul>
+        </nav>
+      </div>
+    </header>
+
+    <main id="main">
+      <slot />
+    </main>
+
+    <footer class="site-footer">
+      <div class="wrap bar">
+        <p>© {new Date().getFullYear()} Branchwork Studio</p>
+        <a class="text-link" href="https://github.com/BranchworkStudio">GitHub</a>
+      </div>
+    </footer>
+  </body>
+</html>
+
+<style>
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: color-mix(in oklch, var(--bg) 82%, transparent);
+    backdrop-filter: blur(14px) saturate(140%);
+    -webkit-backdrop-filter: blur(14px) saturate(140%);
+    view-transition-name: site-header;
+
+    @media (prefers-reduced-transparency: reduce) {
+      background: var(--bg);
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+    }
+  }
+
+  .bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .site-header .bar {
+    height: 4rem;
+  }
+
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-weight: 600;
+    font-size: 1rem;
+    letter-spacing: -0.02em;
+  }
+
+  nav ul {
+    display: flex;
+    gap: clamp(1.25rem, 3vw, 2.25rem);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  nav a {
+    font-size: 0.9375rem;
+    color: var(--muted);
+    transition: color 0.2s;
+  }
+
+  nav a:hover {
+    color: var(--ink);
+  }
+
+  .site-footer {
+    margin-top: clamp(6rem, 14vw, 10rem);
+    font-size: 0.875rem;
+    color: var(--muted);
+  }
+
+  .site-footer .bar {
+    padding-block: 2rem 2.5rem;
+    border-top: 1px solid var(--rule);
+  }
+</style>

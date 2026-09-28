@@ -1,0 +1,218 @@
+---
+import { getCollection, render, type CollectionEntry } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import Cover from '../../components/Cover.astro';
+import { branches, statuses } from '../../data/branches';
+
+export async function getStaticPaths() {
+  const projects = (await getCollection('projects', ({ data }) => !data.draft)).sort(
+    (a, b) => a.data.order - b.data.order,
+  );
+  return projects.map((project, i) => ({
+    params: { id: project.id },
+    props: { project, next: projects[(i + 1) % projects.length] },
+  }));
+}
+
+interface Props {
+  project: CollectionEntry<'projects'>;
+  next: CollectionEntry<'projects'>;
+}
+
+const { project, next } = Astro.props;
+const { data } = project;
+const { Content } = await render(project);
+const started = data.started.getFullYear();
+---
+
+<Base title={data.title} description={data.tagline}>
+  <article class="wrap">
+    <a class="back" href="/#work"><span aria-hidden="true">←</span> All work</a>
+
+    <header class="head">
+      <h1 style={`view-transition-name: title-${project.id}`}>{data.title}</h1>
+      <p class="tagline enter" style="--i: 1">{data.tagline}</p>
+    </header>
+
+    <Cover project={project} ratio="16 / 9" sizes="(min-width: 84rem) 84rem, 100vw" priority />
+
+    <div class="body">
+      <dl class="facts enter" style="--i: 2">
+        <div><dt>Type</dt><dd>{data.kind}</dd></div>
+        <div><dt>Branch</dt><dd>{branches[data.branch]}</dd></div>
+        <div><dt>Status</dt><dd>{statuses[data.status]}</dd></div>
+        <div><dt>Started</dt><dd>{started}</dd></div>
+        {
+          data.made_with.length > 0 && (
+            <div class="wide"><dt>Made with</dt><dd>{data.made_with.join(', ')}</dd></div>
+          )
+        }
+      </dl>
+
+      <div class="prose enter" style="--i: 3">
+        <Content />
+        {
+          data.links.length > 0 && (
+            <ul class="links">
+              {data.links.map((l) => (
+                <li><a href={l.url}>{l.label}</a></li>
+              ))}
+            </ul>
+          )
+        }
+      </div>
+    </div>
+
+    {
+      next.id !== project.id && (
+        <a class="next" href={`/projects/${next.id}/`}>
+          <span class="next-label">Next project</span>
+          <span class="next-title">
+            {next.data.title} <span class="arrow" aria-hidden="true">→</span>
+          </span>
+        </a>
+      )
+    }
+  </article>
+</Base>
+
+<style>
+  .back {
+    display: inline-flex;
+    gap: 0.5rem;
+    margin-top: clamp(1.5rem, 4vw, 3rem);
+    font-size: 0.9375rem;
+    color: var(--muted);
+    transition: color 0.2s;
+  }
+
+  .back:hover {
+    color: var(--ink);
+  }
+
+  .head {
+    padding-block: clamp(2rem, 5vw, 3.5rem) clamp(2rem, 4vw, 3rem);
+    max-width: 52rem;
+  }
+
+  h1 {
+    font-size: clamp(2.75rem, 7vw, 5.75rem);
+    letter-spacing: -0.045em;
+    width: fit-content;
+  }
+
+  .tagline {
+    margin-top: 1.1rem;
+    max-width: 36ch;
+    font-size: clamp(1.15rem, 1.8vw, 1.45rem);
+    line-height: 1.4;
+    color: var(--muted);
+  }
+
+  .body {
+    display: grid;
+    gap: 3rem;
+    margin-top: clamp(3rem, 6vw, 5rem);
+  }
+
+  .facts {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.25rem 1.5rem;
+    margin: 0;
+    align-content: start;
+  }
+
+  .facts .wide {
+    grid-column: 1 / -1;
+  }
+
+  .facts dt {
+    font-size: 0.8125rem;
+    color: var(--muted);
+  }
+
+  .facts dd {
+    margin: 0.2rem 0 0;
+    font-size: 0.975rem;
+  }
+
+  .prose {
+    max-width: 62ch;
+    font-size: 1.125rem;
+    line-height: 1.7;
+  }
+
+  .prose :global(p + p),
+  .prose :global(h2 + p) {
+    margin-top: 1.1em;
+  }
+
+  .prose :global(h2) {
+    margin-top: 2.2em;
+    font-size: 1.35rem;
+    letter-spacing: -0.02em;
+  }
+
+  .prose :global(strong) {
+    font-weight: 600;
+  }
+
+  .links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem 1.5rem;
+    margin: 2rem 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  @media (min-width: 64rem) {
+    .body {
+      grid-template-columns: repeat(12, 1fr);
+    }
+
+    .facts {
+      grid-column: 1 / 4;
+      grid-template-columns: 1fr;
+      position: sticky;
+      top: 6rem;
+    }
+
+    .prose {
+      grid-column: 5 / 12;
+    }
+  }
+
+  .next {
+    display: grid;
+    gap: 0.5rem;
+    margin-top: clamp(6rem, 12vw, 9rem);
+    padding-top: 2rem;
+    border-top: 1px solid var(--rule);
+  }
+
+  .next-label {
+    font-size: 0.875rem;
+    color: var(--muted);
+  }
+
+  .next-title {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.6rem;
+    font-size: clamp(2.25rem, 6vw, 4.5rem);
+    font-weight: 560;
+    letter-spacing: -0.045em;
+    line-height: 1.05;
+  }
+
+  .next .arrow {
+    color: var(--accent);
+    transition: transform 0.5s var(--ease-out);
+  }
+
+  .next:hover .arrow {
+    transform: translateX(8px);
+  }
+</style>

@@ -1,0 +1,398 @@
+---
+import { getCollection } from 'astro:content';
+import { Image } from 'astro:assets';
+import Base from '../layouts/Base.astro';
+import Cover from '../components/Cover.astro';
+import { branches, statuses } from '../data/branches';
+import hero from '../assets/site/hero-branches.jpg';
+
+const projects = (await getCollection('projects', ({ data }) => !data.draft)).sort(
+  (a, b) => a.data.order - b.data.order,
+);
+const [featured, ...rest] = projects;
+const branchCount = new Set(projects.map((p) => p.data.branch)).size;
+const firstYear = Math.min(...projects.map((p) => p.data.started.getFullYear()));
+
+// Layout for the cells under the wide feature: an asymmetric 7/5 pair.
+const cellLayout = [
+  { cls: 'cell-a', ratio: '4 / 3', sizes: '(min-width: 64rem) 50vw, 100vw' },
+  { cls: 'cell-b', ratio: '1 / 1', sizes: '(min-width: 64rem) 36vw, 100vw' },
+];
+---
+
+<Base>
+  <section class="hero wrap">
+    <div class="hero-copy">
+      <h1 class="enter" style="--i: 0">Side projects, grown in every direction.</h1>
+      <p class="lede enter" style="--i: 1">
+        Branchwork Studio is where I build the things I want to exist. Apps for now, not only apps later.
+      </p>
+    </div>
+    <div class="hero-media">
+      <Image
+        src={hero}
+        alt="Bare tree branches over a lean-to shelter, where someone sits by a small campfire at dusk."
+        widths={[640, 960, 1280, 1600]}
+        sizes="(min-width: 64rem) 40vw, 100vw"
+        loading="eager"
+        fetchpriority="high"
+      />
+    </div>
+  </section>
+
+  <section id="work" class="work wrap" aria-labelledby="work-title">
+    <header class="section-head">
+      <h2 id="work-title">Work</h2>
+      <p>
+        {projects.length} projects so far, each grown out of something I care about outside the day job.
+      </p>
+    </header>
+
+    <div class="grid">
+      {
+        featured && (
+          <a class="project cell-wide reveal" href={`/projects/${featured.id}/`}>
+            <Cover project={featured} ratio="16 / 9" sizes="(min-width: 84rem) 84rem, 100vw" />
+            <div class="project-text">
+              <h3 style={`view-transition-name: title-${featured.id}`}>
+                {featured.data.title}
+                <span class="arrow" aria-hidden="true">→</span>
+              </h3>
+              <p class="tagline">{featured.data.tagline}</p>
+              <p class="meta">
+                {featured.data.kind}, {branches[featured.data.branch].toLowerCase()}. {statuses[featured.data.status]}
+              </p>
+            </div>
+          </a>
+        )
+      }
+      {
+        rest.map((p, i) => {
+          const l = cellLayout[i % cellLayout.length];
+          return (
+            <a class:list={['project reveal', l.cls]} href={`/projects/${p.id}/`}>
+              <Cover project={p} ratio={l.ratio} sizes={l.sizes} />
+              <div class="project-text">
+                <h3 style={`view-transition-name: title-${p.id}`}>
+                  {p.data.title}
+                  <span class="arrow" aria-hidden="true">→</span>
+                </h3>
+                <p class="tagline">{p.data.tagline}</p>
+                <p class="meta">
+                  {p.data.kind}, {branches[p.data.branch].toLowerCase()}. {statuses[p.data.status]}
+                </p>
+              </div>
+            </a>
+          );
+        })
+      }
+    </div>
+  </section>
+
+  <section id="about" class="about wrap" aria-labelledby="about-title">
+    <h2 id="about-title" class="statement reveal">
+      A one-person studio for the things I make in the evenings and at weekends.
+    </h2>
+    <div class="about-body reveal">
+      <p>
+        The name has two kinds of branch in it. One is the git branch, where an idea can be tried
+        without breaking anything. The other is the tree kind, which grows wherever there is light.
+        Everything here is software for now. It does not have to stay that way.
+      </p>
+      <dl class="facts">
+        <div>
+          <dt>Started</dt>
+          <dd>{firstYear}</dd>
+        </div>
+        <div>
+          <dt>Projects</dt>
+          <dd>{projects.length}</dd>
+        </div>
+        <div>
+          <dt>Branches</dt>
+          <dd>{branchCount}</dd>
+        </div>
+      </dl>
+    </div>
+  </section>
+
+  <section class="contact wrap reveal" aria-labelledby="contact-title">
+    <h2 id="contact-title">Say hello.</h2>
+    <p>Ideas, questions, or a project you think I would enjoy. I read everything.</p>
+    <a class="button" href="mailto:hello@branchworkstudio.com">
+      Email me <span class="arrow" aria-hidden="true">→</span>
+    </a>
+  </section>
+</Base>
+
+<style>
+  /* ---------- Hero ---------- */
+  .hero {
+    display: grid;
+    gap: 2.5rem;
+    padding-block: clamp(2rem, 6vw, 4.5rem) 0;
+  }
+
+  .hero h1 {
+    /* Sized so the headline holds to two lines from 320px up. */
+    font-size: clamp(1.9rem, 9.2vw, 3.6rem);
+    max-width: 17ch;
+  }
+
+  .lede {
+    margin-top: 1.5rem;
+    max-width: 34ch;
+    font-size: clamp(1.075rem, 1.4vw, 1.25rem);
+    line-height: 1.5;
+    color: var(--muted);
+  }
+
+  .hero-media {
+    overflow: clip;
+    border-radius: var(--radius-media);
+    background: var(--surface);
+    aspect-ratio: 4 / 3;
+  }
+
+  .hero-media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 58% 50%;
+  }
+
+  @media (min-width: 64rem) {
+    .hero {
+      grid-template-columns: repeat(12, 1fr);
+      align-items: end;
+      min-height: min(calc(100dvh - 4rem), 52rem);
+      padding-block: 1.5rem clamp(2rem, 5vh, 3.5rem);
+    }
+
+    .hero h1 {
+      font-size: clamp(2.6rem, 4.7vw, 4.4rem);
+    }
+
+    .hero-copy {
+      grid-column: 1 / 8;
+      padding-bottom: 0.25rem;
+    }
+
+    .hero-media {
+      grid-column: 8 / 13;
+      align-self: stretch;
+      aspect-ratio: auto;
+      max-height: 46rem;
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .hero-media {
+      animation: unveil 1.3s var(--ease-out) 0.15s both;
+    }
+
+    .hero-media img {
+      animation: settle 1.8s var(--ease-out) 0.15s both;
+    }
+  }
+
+  @keyframes unveil {
+    from {
+      clip-path: inset(100% 0 0 0 round var(--radius-media));
+    }
+    to {
+      clip-path: inset(0 0 0 0 round var(--radius-media));
+    }
+  }
+
+  @keyframes settle {
+    from {
+      scale: 1.12;
+    }
+  }
+
+  /* ---------- Work ---------- */
+  .work {
+    padding-top: clamp(6rem, 12vw, 9rem);
+  }
+
+  .section-head {
+    max-width: 40rem;
+    margin-bottom: clamp(2.5rem, 5vw, 4rem);
+  }
+
+  .section-head h2 {
+    font-size: clamp(2rem, 4vw, 3rem);
+  }
+
+  .section-head p {
+    margin-top: 0.9rem;
+    color: var(--muted);
+    max-width: 44ch;
+  }
+
+  .grid {
+    display: grid;
+    gap: clamp(3.5rem, 7vw, 5.5rem) clamp(1.25rem, 3vw, 2.5rem);
+  }
+
+  .project {
+    display: block;
+  }
+
+  .project:active {
+    transform: translateY(1px);
+  }
+
+  .project-text {
+    display: grid;
+    gap: 0.35rem;
+    margin-top: 1.25rem;
+  }
+
+  .project h3 {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    font-size: clamp(1.5rem, 2.4vw, 1.9rem);
+    letter-spacing: -0.03em;
+    width: fit-content;
+  }
+
+  .project .arrow {
+    font-size: 0.8em;
+    color: var(--accent);
+    opacity: 0;
+    transform: translateX(-6px);
+    transition:
+      opacity 0.3s,
+      transform 0.5s var(--ease-out);
+  }
+
+  .project:hover .arrow,
+  .project:focus-visible .arrow {
+    opacity: 1;
+    transform: none;
+  }
+
+  .tagline {
+    max-width: 48ch;
+    color: var(--muted);
+  }
+
+  .project .meta {
+    margin-top: 0.4rem;
+  }
+
+  @media (min-width: 64rem) {
+    .grid {
+      grid-template-columns: repeat(12, 1fr);
+      align-items: start;
+    }
+
+    .cell-wide {
+      grid-column: 1 / -1;
+    }
+
+    .cell-wide .project-text {
+      grid-template-columns: 5fr 7fr;
+      column-gap: 2.5rem;
+      align-items: baseline;
+    }
+
+    .cell-wide .project-text h3 {
+      grid-row: span 2;
+      font-size: clamp(2rem, 3vw, 2.6rem);
+    }
+
+    .cell-a {
+      grid-column: 1 / 8;
+    }
+
+    .cell-b {
+      grid-column: 8 / 13;
+      margin-top: clamp(6rem, 12vw, 11rem);
+    }
+  }
+
+  /* ---------- About ---------- */
+  .about {
+    padding-top: clamp(7rem, 14vw, 11rem);
+    display: grid;
+    gap: 2.5rem;
+  }
+
+  .statement {
+    font-size: clamp(1.9rem, 4.2vw, 3.4rem);
+    font-weight: 500;
+    line-height: 1.1;
+    max-width: 22ch;
+  }
+
+  .about-body {
+    display: grid;
+    gap: 3rem;
+    max-width: 38rem;
+  }
+
+  .about-body p {
+    color: var(--muted);
+    font-size: 1.125rem;
+  }
+
+  .facts {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    margin: 0;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--rule);
+  }
+
+  .facts dt {
+    font-size: 0.875rem;
+    color: var(--muted);
+  }
+
+  .facts dd {
+    margin: 0.25rem 0 0;
+    font-size: clamp(2rem, 4vw, 2.75rem);
+    font-weight: 500;
+    letter-spacing: -0.04em;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+
+  @media (min-width: 64rem) {
+    .about {
+      grid-template-columns: repeat(12, 1fr);
+    }
+
+    .statement {
+      grid-column: 1 / 9;
+    }
+
+    .about-body {
+      grid-column: 6 / 12;
+    }
+  }
+
+  /* ---------- Contact ---------- */
+  .contact {
+    padding-top: clamp(7rem, 14vw, 11rem);
+    display: grid;
+    justify-items: start;
+    gap: 1.25rem;
+  }
+
+  .contact h2 {
+    font-size: clamp(2.75rem, 7vw, 5.5rem);
+    letter-spacing: -0.045em;
+  }
+
+  .contact p {
+    color: var(--muted);
+    max-width: 40ch;
+    margin-bottom: 0.75rem;
+  }
+</style>
