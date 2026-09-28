@@ -15,7 +15,6 @@ const projects = defineCollection({
       // What the thing is, in plain words: "iOS app", "Web app", "Bookshelf"…
       kind: z.string(),
       status: z.enum(keys(statuses)),
-      started: z.coerce.date(),
       // Lower numbers sort first on the home page; the first one gets the wide slot.
       order: z.number().default(100),
       // Materials: a tech stack for code, wood species for a table.

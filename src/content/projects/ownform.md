@@ -9,7 +9,6 @@ screens:
   - ../../assets/projects/ownform-plan.png
   - ../../assets/projects/ownform-home.png
 cover_alt: Two Ownform screens. The weekly training plan, and the home screen with today's workout.
-started: 2026-06-01
 made_with: [Swift, SwiftUI]
 ---
 

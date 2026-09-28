@@ -7,7 +7,6 @@ status: live
 order: 2
 cover: ../../assets/projects/delta-force-live-cover.png
 cover_alt: The Delta Force Live connect page, dark with faint topographic contour lines.
-started: 2026-09-10
 made_with: [Supabase, Edge Functions, Static site]
 ---
 

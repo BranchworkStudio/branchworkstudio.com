@@ -7,7 +7,6 @@ status: prototype
 order: 3
 cover: ../../assets/projects/ud-i-det-fri-cover.png
 cover_alt: Illustration from the app of two tents on a green hillside under a low sun.
-started: 2026-07-15
 made_with: [React Native, Expo, MapLibre, OpenStreetMap]
 ---
 

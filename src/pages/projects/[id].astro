@@ -22,7 +22,6 @@ interface Props {
 const { project, next } = Astro.props;
 const { data } = project;
 const { Content } = await render(project);
-const started = data.started.getFullYear();
 ---
 
 <Base title={data.title} description={data.tagline}>
@@ -41,7 +40,6 @@ const started = data.started.getFullYear();
         <div><dt>Type</dt><dd>{data.kind}</dd></div>
         <div><dt>Branch</dt><dd>{branches[data.branch]}</dd></div>
         <div><dt>Status</dt><dd>{statuses[data.status]}</dd></div>
-        <div><dt>Started</dt><dd>{started}</dd></div>
         {
           data.made_with.length > 0 && (
             <div class="wide"><dt>Made with</dt><dd>{data.made_with.join(', ')}</dd></div>
