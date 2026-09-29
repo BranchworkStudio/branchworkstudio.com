@@ -34,13 +34,20 @@ const isHome = Astro.url.pathname === '/';
     <meta property="og:url" content={canonical} />
     <meta name="theme-color" content="#f9faf9" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#0c110e" media="(prefers-color-scheme: dark)" />
+    <script is:inline>
+      // The header mark grows on the first page of a visit, then stays grown.
+      try {
+        if (sessionStorage.getItem('bw-grown')) document.documentElement.dataset.grown = '';
+        else sessionStorage.setItem('bw-grown', '1');
+      } catch {}
+    </script>
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to content</a>
     <header class="site-header">
       <div class="wrap bar">
         <a class="brand" href="/" aria-current={isHome ? 'page' : undefined}>
-          <Mark size={24} />
+          <Mark size={24} grow="load" />
           <span>Branchwork Studio</span>
         </a>
         <nav aria-label="Main">

@@ -230,7 +230,7 @@ a {
   }
 
   /* Scroll-driven reveal where supported; content is fully visible otherwise. */
-  @supports (animation-timeline: view()) {
+  @supports ((animation-timeline: view()) and (animation-range: entry)) {
     .reveal {
       animation: rise-in linear both;
       animation-timeline: view();

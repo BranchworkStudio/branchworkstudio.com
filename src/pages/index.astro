@@ -3,6 +3,7 @@ import { getCollection } from 'astro:content';
 import { Image } from 'astro:assets';
 import Base from '../layouts/Base.astro';
 import Cover from '../components/Cover.astro';
+import Mark from '../components/Mark.astro';
 import { branches, statuses } from '../data/branches';
 import hero from '../assets/site/hero-branches.jpg';
 
@@ -11,6 +12,9 @@ const projects = (await getCollection('projects', ({ data }) => !data.draft)).so
 );
 const [featured, ...rest] = projects;
 const branchCount = new Set(projects.map((p) => p.data.branch)).size;
+
+// Each word rises out of its own mask, as in the launch video.
+const headline = 'Side projects, grown in every direction.'.split(' ');
 
 // Layout for the cells under the wide feature: an asymmetric 7/5 pair.
 const cellLayout = [
@@ -22,8 +26,16 @@ const cellLayout = [
 <Base>
   <section class="hero wrap">
     <div class="hero-copy">
-      <h1 class="enter" style="--i: 0">Side projects, grown in every direction.</h1>
-      <p class="lede enter" style="--i: 1">
+      <h1>
+        {
+          headline.map((word, i) => (
+            <>
+              <span class="w"><span style={`--w: ${i}`}>{word}</span></span>{' '}
+            </>
+          ))
+        }
+      </h1>
+      <p class="lede enter" style="--i: 5">
         Branchwork Studio is where I build the things I want to exist. Apps for now, not only apps later.
       </p>
     </div>
@@ -50,7 +62,7 @@ const cellLayout = [
     <div class="grid">
       {
         featured && (
-          <a class="project cell-wide reveal" href={`/projects/${featured.id}/`}>
+          <a class="project cell-wide" href={`/projects/${featured.id}/`}>
             <Cover project={featured} ratio="16 / 9" sizes="(min-width: 84rem) 84rem, 100vw" />
             <div class="project-text">
               <h3 style={`view-transition-name: title-${featured.id}`}>
@@ -69,7 +81,7 @@ const cellLayout = [
         rest.map((p, i) => {
           const l = cellLayout[i % cellLayout.length];
           return (
-            <a class:list={['project reveal', l.cls]} href={`/projects/${p.id}/`}>
+            <a class:list={['project', l.cls]} href={`/projects/${p.id}/`}>
               <Cover project={p} ratio={l.ratio} sizes={l.sizes} />
               <div class="project-text">
                 <h3 style={`view-transition-name: title-${p.id}`}>
@@ -111,12 +123,15 @@ const cellLayout = [
     </div>
   </section>
 
-  <section class="contact wrap reveal" aria-labelledby="contact-title">
-    <h2 id="contact-title">Say hello.</h2>
-    <p>Ideas, questions, or a project you think I would enjoy. I read everything.</p>
-    <a class="button" href="mailto:hello@branchworkstudio.com">
-      Email me <span class="arrow" aria-hidden="true">→</span>
-    </a>
+  <section class="contact wrap" aria-labelledby="contact-title">
+    <div class="contact-copy reveal">
+      <h2 id="contact-title">Say hello.</h2>
+      <p>Ideas, questions, or a project you think I would enjoy. I read everything.</p>
+      <a class="button" href="mailto:hello@branchworkstudio.com">
+        Email me <span class="arrow" aria-hidden="true">→</span>
+      </a>
+    </div>
+    <Mark size={176} grow="scroll" class="contact-mark" />
   </section>
 </Base>
 
@@ -132,6 +147,18 @@ const cellLayout = [
     /* Sized so the headline holds to two lines from 320px up. */
     font-size: clamp(1.9rem, 9.2vw, 3.6rem);
     max-width: 17ch;
+  }
+
+  /* Word masks clip only at the bottom, so descenders and overhangs survive. */
+  .w {
+    display: inline-block;
+    padding-bottom: 0.12em;
+    margin-bottom: -0.12em;
+    clip-path: inset(-1em -1em 0 -1em);
+  }
+
+  .w > span {
+    display: inline-block;
   }
 
   .lede {
@@ -182,12 +209,43 @@ const cellLayout = [
   }
 
   @media (prefers-reduced-motion: no-preference) {
+    .w > span {
+      animation: word-rise 0.9s var(--ease-out) both;
+      animation-delay: calc(var(--w) * 70ms + 80ms);
+    }
+
     .hero-media {
       animation: unveil 1.3s var(--ease-out) 0.15s both;
     }
 
     .hero-media img {
       animation: settle 1.8s var(--ease-out) 0.15s both;
+    }
+
+    /* The photo drifts a little slower than the page as you scroll away. */
+    @supports ((animation-timeline: view()) and (animation-range: entry)) {
+      .hero-media img {
+        animation:
+          settle 1.8s var(--ease-out) 0.15s both,
+          drift linear both;
+        animation-timeline: auto, scroll(root);
+        animation-range: normal, 0 100vh;
+      }
+    }
+  }
+
+  @keyframes word-rise {
+    from {
+      translate: 0 110%;
+    }
+  }
+
+  @keyframes drift {
+    from {
+      transform: translateY(0) scale(1.08);
+    }
+    to {
+      transform: translateY(6%) scale(1.08);
     }
   }
 
@@ -277,6 +335,45 @@ const cellLayout = [
 
   .project .meta {
     margin-top: 0.4rem;
+  }
+
+  /* Covers open like a window and their content settles as they scroll in;
+     the text follows. Decorative, so browsers without support show it all. */
+  @media (prefers-reduced-motion: no-preference) {
+    @supports ((animation-timeline: view()) and (animation-range: entry)) {
+      .project :global(.cover) {
+        animation: cover-open linear both;
+        animation-timeline: view();
+        animation-range: entry 5% cover 40%;
+      }
+
+      .project :global(.cover > *) {
+        animation: cover-settle linear both;
+        animation-timeline: view();
+        animation-range: entry 5% cover 40%;
+      }
+
+      .project-text {
+        animation: rise-in linear both;
+        animation-timeline: view();
+        animation-range: entry 0% entry 100%;
+      }
+    }
+  }
+
+  @keyframes cover-open {
+    from {
+      clip-path: inset(6% 5% round var(--radius-media));
+    }
+    to {
+      clip-path: inset(0 round var(--radius-media));
+    }
+  }
+
+  @keyframes cover-settle {
+    from {
+      transform: scale(1.12);
+    }
   }
 
   @media (min-width: 64rem) {
@@ -376,8 +473,35 @@ const cellLayout = [
   .contact {
     padding-top: clamp(7rem, 14vw, 11rem);
     display: grid;
+    gap: 3rem;
+  }
+
+  .contact-copy {
+    display: grid;
     justify-items: start;
     gap: 1.25rem;
+  }
+
+  .contact :global(.contact-mark) {
+    grid-row: 1;
+    width: clamp(4.5rem, 12vw, 11rem);
+    height: auto;
+  }
+
+  @media (min-width: 64rem) {
+    .contact {
+      grid-template-columns: repeat(12, 1fr);
+      align-items: end;
+    }
+
+    .contact-copy {
+      grid-column: 1 / 9;
+    }
+
+    .contact :global(.contact-mark) {
+      grid-column: 10 / 13;
+      justify-self: end;
+    }
   }
 
   .contact h2 {
